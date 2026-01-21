@@ -13,7 +13,7 @@ public final class ExplanationTextRect extends StackPane {
 
     public ExplanationTextRect(double width, double height) {
         background = new Rectangle();
-        background.setFill(Color.rgb(140, 140, 140));
+        background.setFill(Color.rgb(200, 200, 200));
         background.setStroke(Color.BLACK);
         background.setArcWidth(10);
         background.setArcHeight(10);

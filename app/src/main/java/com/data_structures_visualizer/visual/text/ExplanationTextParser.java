@@ -16,7 +16,7 @@ public final class ExplanationTextParser {
 
     public static Text[] parse(List<ExplanationText> explanations) {
 
-        if (explanations == null || explanations.isEmpty()) {
+        if(explanations == null || explanations.isEmpty()) {
             return new Text[0];
         }
 
@@ -37,8 +37,8 @@ public final class ExplanationTextParser {
         Matcher matcher = TOKEN_PATTERN.matcher(raw);
         int lastIndex = 0;
 
-        while (matcher.find()) {
-            if (matcher.start() > lastIndex) {
+        while(matcher.find()) {
+            if(matcher.start() > lastIndex){
                 out.add(TextFactory.create(
                     raw.substring(lastIndex, matcher.start()),
                     Color.BLACK
@@ -53,7 +53,7 @@ public final class ExplanationTextParser {
             lastIndex = matcher.end();
         }
 
-        if (lastIndex < raw.length()) {
+        if(lastIndex < raw.length()){
             out.add(TextFactory.create(
                 raw.substring(lastIndex),
                 Color.BLACK

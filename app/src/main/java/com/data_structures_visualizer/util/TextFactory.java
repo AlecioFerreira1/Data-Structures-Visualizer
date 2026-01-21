@@ -23,10 +23,12 @@ public final class TextFactory {
         return switch (type) {
             case "next"       -> create(content, Colors.next); 
             case "prev"       -> create(content, Colors.prev); 
-            case "node"       -> create(content, Colors.node); 
+            case "node"       -> create(content, Colors.node);
+            case "new_node"   -> create(content, Colors.newNode);
             case "found"      -> create(content, Color.web("#2E7D32")); 
             case "not_found"  -> create(content, Color.web("#C62828")); 
             case "inserted"   -> create(content, Color.web("#00FF00")); 
+            case "remove"     -> create(content, Colors.remove);
             default           -> create(content, Color.web("#212121")); 
         };
     }

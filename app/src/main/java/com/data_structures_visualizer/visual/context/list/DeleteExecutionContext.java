@@ -5,7 +5,7 @@ import com.data_structures_visualizer.visual.ui.Arrow;
 import com.data_structures_visualizer.visual.ui.VisualNode;
 
 public final class DeleteExecutionContext {
-     private final Stack<VisualNode> removedNodes = new Stack<VisualNode>(null);
+    private final Stack<VisualNode> removedNodes = new Stack<VisualNode>(null);
     private final Stack<Arrow> removedArrows = new Stack<Arrow>(null);
     private final Stack<Arrow> removedPrevArrows = new Stack<Arrow>(null);
 

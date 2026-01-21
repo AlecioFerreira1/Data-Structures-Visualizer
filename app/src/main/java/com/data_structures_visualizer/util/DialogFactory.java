@@ -87,9 +87,7 @@ public final class DialogFactory {
     }
 
     public static void showVerticalChoiceDialog(
-        String message,
-        String btn1Text, Runnable opt1,
-        String btn2Text, Runnable opt2
+        String message, String btn1Text, Runnable opt1, String btn2Text, Runnable opt2
     ) {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);

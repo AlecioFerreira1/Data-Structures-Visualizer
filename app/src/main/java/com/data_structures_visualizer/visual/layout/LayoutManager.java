@@ -8,7 +8,18 @@ public final class LayoutManager {
     public static final double explanationRectWidthRatio = 0.27;
     public static final double explanationRectHeightRatio = 0.27;
 
-    public static void createExplanationRect(
+    public static ExplanationTextRect createExplanationRect(AnchorPane visualization_area){
+        ExplanationTextRect explanationTextRect = new ExplanationTextRect(
+            LayoutManager.explanationRectWidthRatio * 800, 
+            LayoutManager.explanationRectHeightRatio * 800
+        );
+        
+        insertExplanationRect(visualization_area, explanationTextRect);
+
+        return explanationTextRect;
+    }
+
+    public static void insertExplanationRect(
         AnchorPane visualization_area, ExplanationTextRect explanationTextRect
     ){
         visualization_area.getChildren().add(explanationTextRect);
@@ -25,7 +36,7 @@ public final class LayoutManager {
         double h = height * explanationRectHeightRatio;
         double w = width * explanationRectWidthRatio;
 
-        explanationTextRect.getRect().setOpacity(0.6);
+        explanationTextRect.getRect().setOpacity(0.5);
 
         explanationTextRect.setMinHeight(h);
         explanationTextRect.setPrefHeight(h);

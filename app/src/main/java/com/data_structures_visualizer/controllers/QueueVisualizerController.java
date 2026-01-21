@@ -136,8 +136,7 @@ public final class QueueVisualizerController {
                 );
                 
                 AnchorPane.setTopAnchor(
-                    nodes.get(i), 
-                    (height / 2) - (nodes.get(i).getRect().getHeight()) / 2
+                    nodes.get(i), (height / 2) - (nodes.get(i).getRect().getHeight()) / 2
                 );
 
                 AnchorPane.setLeftAnchor(

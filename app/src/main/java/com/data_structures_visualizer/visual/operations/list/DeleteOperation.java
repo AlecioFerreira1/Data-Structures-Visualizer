@@ -12,9 +12,9 @@ import com.data_structures_visualizer.visual.animation.NodeAnimator;
 import com.data_structures_visualizer.visual.animation.ArrowAnimator.DrawArrowDirection;
 import com.data_structures_visualizer.visual.context.list.DeleteContext;
 import com.data_structures_visualizer.visual.context.list.DeleteExecutionContext;
+import com.data_structures_visualizer.visual.operations.Operation;
 import com.data_structures_visualizer.visual.operations.list.common.FixArrowLabelsPosOperation;
 import com.data_structures_visualizer.visual.operations.list.common.FixCurvedArrowPosOperation;
-import com.data_structures_visualizer.visual.operations.list.common.Operation;
 import com.data_structures_visualizer.visual.operations.list.common.RepositionNodesOperation;
 import com.data_structures_visualizer.visual.operations.list.common.TransverseAndHighlightOperation;
 import com.data_structures_visualizer.visual.ui.Arrow;
@@ -101,13 +101,13 @@ public final class DeleteOperation {
         
         return new SequentialTransition(
             NodeAnimator.animateFill(
-                targetRect, (Color) targetRect.getStroke(), targetRectColor, (int) (700 * speed), false
+                targetRect, (Color) targetRect.getFill(), targetRectColor, (int) (700 * speed), false
             ),
             index - 1 >= 0 ? NodeAnimator.animateFill(
-                prevRect, (Color) prevRect.getStroke(), prevRectColor, (int) (700 * speed), false
+                prevRect, (Color) prevRect.getFill(), prevRectColor, (int) (700 * speed), false
             ) : AnimationUtils.emptyAnimation(),
             index + 1 < nodes.size() ? NodeAnimator.animateFill(
-                nextRect, (Color) nextRect.getStroke(), nextRectColor, (int) (700 * speed), false
+                nextRect, (Color) nextRect.getFill(), nextRectColor, (int) (700 * speed), false
             ) : AnimationUtils.emptyAnimation()
         );
     }

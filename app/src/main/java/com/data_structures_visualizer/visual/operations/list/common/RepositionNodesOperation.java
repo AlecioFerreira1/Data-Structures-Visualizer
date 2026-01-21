@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.data_structures_visualizer.config.ListVisualizerConfig;
 import com.data_structures_visualizer.controllers.ListVisualizerController.ListType;
 import com.data_structures_visualizer.visual.animation.AnimationUtils;
+import com.data_structures_visualizer.visual.operations.Operation;
 import com.data_structures_visualizer.visual.ui.Arrow;
 import com.data_structures_visualizer.visual.ui.ArrowLabel;
 import com.data_structures_visualizer.visual.ui.VisualNode;

@@ -1,6 +1,9 @@
 package com.data_structures_visualizer.visual.ui;
 
 import javafx.scene.shape.Rectangle;
+
+import com.data_structures_visualizer.models.color.Colors;
+
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -24,7 +27,7 @@ public final class VisualNode extends StackPane {
 
     private void createRectangle(double width, double height){
         rect = new Rectangle(width, height);
-        rect.setFill(Color.rgb(0, 255, 0));
+        rect.setFill(Colors.node);
         rect.setWidth(width);
         rect.setHeight(height);
         rect.setStroke(Color.BLACK);

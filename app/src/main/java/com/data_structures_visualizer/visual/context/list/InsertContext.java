@@ -7,7 +7,7 @@ import com.data_structures_visualizer.models.entities.DoublyLinkedList;
 import com.data_structures_visualizer.models.entities.SinglyLinkedList;
 import com.data_structures_visualizer.models.text.ExplanationRepository;
 
-public final class InsertContext extends Context{
+public final class InsertContext extends ListContext{
     private final int pos;
     private final int value;
     private final double nodeWidth;

@@ -7,7 +7,7 @@ import com.data_structures_visualizer.models.entities.DoublyLinkedList;
 import com.data_structures_visualizer.models.entities.SinglyLinkedList;
 import com.data_structures_visualizer.models.text.ExplanationRepository;
 
-public abstract class Context {
+public abstract class ListContext {
     protected final ListType listType;
     protected final double xOffset;
     protected final SinglyLinkedList<Integer> singlyLinkedList;
@@ -15,7 +15,7 @@ public abstract class Context {
     protected final CircularLinkedList<Integer> circularLinkedList;
     protected final ExplanationRepository explanationRepository;
 
-    protected Context(
+    protected ListContext(
         ListType listType, double width, double height, SinglyLinkedList<Integer> singlyLinkedList,
         DoublyLinkedList<Integer> doublyLikedList, CircularLinkedList<Integer> circularLinkedList,
         ExplanationRepository explanationRepository

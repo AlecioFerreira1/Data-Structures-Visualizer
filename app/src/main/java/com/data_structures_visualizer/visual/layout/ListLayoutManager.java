@@ -36,7 +36,7 @@ public final class ListLayoutManager {
     public ListLayoutManager(
         AnchorPane visualization_area, AnimationTimeLine animationTimeLine, ListType listType,
         SinglyLinkedList<Integer> singlyLinkedList, DoublyLinkedList<Integer> doublyLikedList, 
-        CircularLinkedList<Integer> circularLinkedList, ExplanationTextRect explanationTextRect
+        CircularLinkedList<Integer> circularLinkedList
     ){
         this.visualization_area = visualization_area;
         this.listType = listType;
@@ -44,7 +44,6 @@ public final class ListLayoutManager {
         this.singlyLinkedList = singlyLinkedList;
         this.doublyLikedList = doublyLikedList;
         this.circularLinkedList = circularLinkedList;
-        this.explanationTextRect = explanationTextRect;
     }
 
     public void build(){
@@ -348,4 +347,8 @@ public final class ListLayoutManager {
     public ExplanationTextRect getExplanationTextRect() {
         return explanationTextRect;
     } 
+
+    public void setExplanationTextRect(ExplanationTextRect rect){
+        this.explanationTextRect = rect;
+    }
 }

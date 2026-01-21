@@ -23,7 +23,6 @@ import com.data_structures_visualizer.visual.operations.list.InsertOperation;
 import com.data_structures_visualizer.visual.operations.list.SearchOperation;
 import com.data_structures_visualizer.visual.text.ExplanationTextParser;
 import com.data_structures_visualizer.visual.ui.Arrow;
-import com.data_structures_visualizer.visual.ui.ExplanationTextRect;
 import com.data_structures_visualizer.visual.ui.VisualNode;
 
 import javafx.fxml.FXML;
@@ -85,7 +84,6 @@ public final class ListVisualizerController {
     private Button advance_btn;
 
     private ListLayoutManager listLayoutManager;
-    private ExplanationTextRect explanationTextRect;
     private Button selectedButton;
     private ListType listType = ListType.SINGLY;
 
@@ -153,7 +151,6 @@ public final class ListVisualizerController {
 
     @FXML
     public void initialize(){
-        createExplanationRect();
         startLayoutManager();
         putStartExample();
         selectButton(singly_linked_list_btn);
@@ -167,19 +164,11 @@ public final class ListVisualizerController {
     private void startLayoutManager(){
         listLayoutManager = new ListLayoutManager(
             visualization_area, animationTimeLine, listType, singlyLinkedList,
-            doublyLikedList, circularLinkedList, explanationTextRect
+            doublyLikedList, circularLinkedList
         );
 
         listLayoutManager.build();
-    }
-
-    private void createExplanationRect(){
-        explanationTextRect = new ExplanationTextRect(
-            LayoutManager.explanationRectWidthRatio * 800, 
-            LayoutManager.explanationRectHeightRatio * 800
-        );
-
-        LayoutManager.createExplanationRect(visualization_area, explanationTextRect);
+        listLayoutManager.setExplanationTextRect(LayoutManager.createExplanationRect(visualization_area));
     }
 
     private void setupControlButtons(){
@@ -233,13 +222,13 @@ public final class ListVisualizerController {
             List<ExplanationText> explanations = explanationRepository.get(index);
 
             if(!explanations.isEmpty()) {
-                explanationTextRect.setContent(
+                listLayoutManager.getExplanationTextRect().setContent(
                     ExplanationTextParser.parse(explanations)
                 );
             } 
             
             else{
-                explanationTextRect.clear();
+                listLayoutManager.getExplanationTextRect().clear();
             }
         });
     }
@@ -523,10 +512,10 @@ public final class ListVisualizerController {
     }
 
     private void insertNode(int value, int pos){
-        if(!validadeInsertion(pos)) return;
-
         animationTimeLine.clear();
         explanationRepository.clear();
+        
+        if(!validadeInsertion(pos)) return;
 
         InsertContext insertContext = buildInsertContext(value, pos);
 
@@ -551,10 +540,10 @@ public final class ListVisualizerController {
     }
 
     private void deleteNode(int value, boolean removeByIndex){
-        if(!validadeDeletion(removeByIndex, value)) return;
-
         animationTimeLine.clear();
         explanationRepository.clear();
+
+        if(!validadeDeletion(removeByIndex, value)) return;
 
         DeleteContext deleteContext = buildDeleteContext(value, removeByIndex);
 

@@ -3,6 +3,7 @@ package com.data_structures_visualizer.visual.operations.list.common;
 import com.data_structures_visualizer.config.ListVisualizerConfig;
 import com.data_structures_visualizer.models.animation.AnimationTimeLine;
 import com.data_structures_visualizer.models.animation.Step;
+import com.data_structures_visualizer.visual.operations.Operation;
 import com.data_structures_visualizer.visual.ui.ArrowLabel;
 
 import javafx.animation.TranslateTransition;

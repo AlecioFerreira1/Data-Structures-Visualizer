@@ -5,7 +5,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class ArrowLabel extends Pane{
+public final class ArrowLabel extends Pane {
     public static enum ArrowPosition{
         RIGHT, BELOW, LEFT, ABOVE
     }
@@ -19,6 +19,7 @@ public class ArrowLabel extends Pane{
         this.text = new Text(text);  
         this.text.setFill(Color.RED);
         this.text.setFont(Font.font(fontSize));
+        
         getChildren().addAll(this.text, arrow);
         layoutChildren();
     }
@@ -41,8 +42,11 @@ public class ArrowLabel extends Pane{
 
         switch(position){
             case RIGHT -> placeArrow(textWidth + xOffset, (textHeight / 2) - (arrowHeight / 2),  0);
-            case LEFT -> placeArrow(-textWidth - xOffset, (textHeight / 2) - (arrowHeight / 2), 180);
-            case ABOVE -> placeArrow((textWidth / 2) - (arrowWidth / 2), - (textHeight + arrowHeight + yOffset) , 270);
+            case LEFT -> {
+                text.relocate(textWidth + xOffset, 0);
+                placeArrow(-(textHeight + xOffset), (textHeight / 2) - (arrowHeight / 2), 180);
+            }
+            case ABOVE -> placeArrow((textWidth / 2) - (arrowWidth / 2), -(textHeight + arrowHeight + yOffset), 270);
             case BELOW -> placeArrow((textWidth / 2) - (arrowWidth / 2), textHeight + arrowHeight + yOffset, 90); 
             default -> placeArrow(textWidth, textHeight / 2, 0);
         }

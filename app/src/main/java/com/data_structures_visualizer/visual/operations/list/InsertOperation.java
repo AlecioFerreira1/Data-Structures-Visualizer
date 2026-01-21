@@ -14,9 +14,9 @@ import com.data_structures_visualizer.visual.animation.NodeAnimator;
 import com.data_structures_visualizer.visual.animation.ArrowAnimator.DrawArrowDirection;
 import com.data_structures_visualizer.visual.context.list.InsertContext;
 import com.data_structures_visualizer.visual.context.list.InsertExecutionContext;
+import com.data_structures_visualizer.visual.operations.Operation;
 import com.data_structures_visualizer.visual.operations.list.common.FixArrowLabelsPosOperation;
 import com.data_structures_visualizer.visual.operations.list.common.FixCurvedArrowPosOperation;
-import com.data_structures_visualizer.visual.operations.list.common.Operation;
 import com.data_structures_visualizer.visual.operations.list.common.RepositionNodesOperation;
 import com.data_structures_visualizer.visual.operations.list.common.TransverseAndHighlightOperation;
 import com.data_structures_visualizer.visual.ui.Arrow;
@@ -82,7 +82,7 @@ public final class InsertOperation {
 
         nodes.add(context.getPos(), newNode);
         newNode.getRect().setStrokeWidth(Math.min(width, height) * 0.005);
-        newNode.getRect().setFill(Colors.node);
+        newNode.getRect().setFill(Colors.newNode);
         newNode.setOpacity(0);
         newNode.setScaleX(0);
         newNode.setScaleY(0);
@@ -229,11 +229,11 @@ public final class InsertOperation {
                 return new SequentialTransition(
                     nextNodeRect != null ? NodeAnimator.animateFill(
                         nextNodeRect, (Color) nextNodeRect.getFill(), 
-                        Color.rgb(0, 255, 0), (int) (700 * speed), false
+                        Colors.node, (int) (700 * speed), false
                     ) : AnimationUtils.emptyAnimation(),
                     prevNodeRect != null ? NodeAnimator.animateFill(
                         prevNodeRect, (Color) prevNodeRect.getFill(), 
-                        Color.rgb(0, 255, 0), (int) (700 * speed), false
+                        Colors.node, (int) (700 * speed), false
                     ) : AnimationUtils.emptyAnimation()
                 );
             } 
@@ -251,7 +251,7 @@ public final class InsertOperation {
 
             context.getExplanationRepository().addExplanation(0, 
                 new ExplanationText(
-                0, "Primeiro, é feita uma busca da região de inserção para inserir o novo nó {node:" 
+                0, "Primeiro, é feita uma busca da região de inserção para inserir o novo nó {new_node:" 
                 + String.valueOf(context.getValue()) + "}.\n"
             ));   
         }
@@ -304,18 +304,18 @@ public final class InsertOperation {
                 if(context.getListType() == ListType.DOUBLY){
                     return new SequentialTransition(
                         ArrowAnimator.animateOut(
-                            arrows.get(context.getPos() - 1), 1 * speed, 
+                            arrows.get(context.getPos() - 1), speed, 
                             DrawArrowDirection.BACKWARD
                         ),
                         ArrowAnimator.animateOut(
                             prevArrows.get(context.getPos() - 1), 
-                            1 * speed, DrawArrowDirection.FORWARD
+                            speed, DrawArrowDirection.FORWARD
                         )
                     );
                 }
 
                 return ArrowAnimator.animateOut(
-                    arrows.get(context.getPos() - 1), 1 * speed, DrawArrowDirection.FORWARD
+                    arrows.get(context.getPos() - 1), speed, DrawArrowDirection.FORWARD
                 );
             },
             () -> {
@@ -323,13 +323,13 @@ public final class InsertOperation {
 
                 if(context.getListType() == ListType.DOUBLY){
                     return new SequentialTransition(
-                        ArrowAnimator.animateIn(arrows.get(context.getPos() - 1), 1 * speed, DrawArrowDirection.FORWARD),
-                        ArrowAnimator.animateIn(prevArrows.get(context.getPos() - 1), 1 * speed, DrawArrowDirection.BACKWARD)
+                        ArrowAnimator.animateIn(arrows.get(context.getPos() - 1), speed, DrawArrowDirection.FORWARD),
+                        ArrowAnimator.animateIn(prevArrows.get(context.getPos() - 1), speed, DrawArrowDirection.BACKWARD)
                     );
                 }
 
                 return ArrowAnimator.animateIn(
-                    arrows.get(context.getPos() - 1), 1 * speed, DrawArrowDirection.BACKWARD
+                    arrows.get(context.getPos() - 1), speed, DrawArrowDirection.BACKWARD
                 );
             }
         ));
@@ -364,7 +364,7 @@ public final class InsertOperation {
         context.getExplanationRepository().addExplanation(
             timeLine.size(),
             new ExplanationText(timeLine.size(), 
-                "Criando o nó {node:" + context.getValue() + "}."
+                "Criando o nó {new_node:" + context.getValue() + "}."
             )
         );
 
@@ -386,7 +386,7 @@ public final class InsertOperation {
         context.getExplanationRepository().addExplanation(
             timeLine.size(),
             new ExplanationText(timeLine.size(), 
-                "Criando o nó {node:" + context.getValue() + "}."
+                "Criando o nó {new_node:" + context.getValue() + "}."
             )
         );
 
@@ -414,7 +414,7 @@ public final class InsertOperation {
                 Animation resetFillColorFomPrevNode = NodeAnimator.animateFill(
                     nodes.get(context.getPos() - 1).getRect(), 
                     (Color) nodes.get(context.getPos() - 1).getRect().getFill(), 
-                     Color.rgb(0, 255, 25), 
+                     Colors.node, 
                     (int) (300 * ListVisualizerConfig.speedVisualization) , false
                 );
 
@@ -426,7 +426,7 @@ public final class InsertOperation {
                         ), resetFillColorFomPrevNode, 
                         NodeAnimator.animateFill(
                             nodes.get(context.getPos()).getRect(), (Color) nodes.get(context.getPos()).getRect().getFill(), 
-                            Color.rgb(0, 255, 25), (int) (700 * speed), false
+                            Colors.node, (int) (700 * speed), false
                         )
                     );
                 }
@@ -482,13 +482,13 @@ public final class InsertOperation {
         String prevValue = nodes.get(context.getPos() - 1).getText();
 
         String explanation = "O ponteiro prox. do nó {prev:anterior} de valor ({prev:"
-                             + prevValue + "}) aponta para o novo nó ({node:" + context.getValue() + "}).";
+                             + prevValue + "}) aponta para o novo nó ({new_node:" + context.getValue() + "}).";
 
         if(context.getListType() == ListType.DOUBLY){
            explanation = "O ponteiro prox. do nó {prev:anterior} de valor ({prev:"
-                         + prevValue + "}) aponta para o {node:novo nó} ({node:" + context.getValue() + "})"
-                         + " e o ponteiro ant. do {node:novo nó} passa a apontar para o nó {prev:anterior}" 
-                         + "({" + context.getValue() + "}).";
+                         + prevValue + "}) aponta para o {new_node:novo nó} ({new_node:" + context.getValue() + "})"
+                         + " e o ponteiro ant. do {new_node:novo nó} passa a apontar para o nó {prev:anterior}" 
+                         + "({new_node:" + context.getValue() + "}).";
 
         }
 
@@ -519,7 +519,7 @@ public final class InsertOperation {
                         toCreateArrows, 
                         NodeAnimator.animateFill(
                             nextNodeRect, (Color) nextNodeRect.getFill(), 
-                            Color.rgb(0, 255, 25), (int) (700 * speed), false
+                            Colors.node, (int) (700 * speed), false
                         )
                     );
                 }
@@ -547,14 +547,14 @@ public final class InsertOperation {
     private void buildExplanationForStepToConnectNextArrow(AnimationTimeLine timeLine){
         String nextValue = nodes.get(context.getPos() + 1).getText();
 
-        String explanation = "O ponteiro prox. do {node:novo nó} ({node:"
+        String explanation = "O ponteiro prox. do {new_node:novo nó} ({new_node:"
                              + context.getValue() + "}) aponta para o {next:próximo} nó ({next:" + nextValue + "}).";
 
         if(context.getListType() == ListType.DOUBLY){
-           explanation = "O ponteiro prox. do {node:novo nó} ({node:"
+           explanation = "O ponteiro prox. do {new_node:novo nó} ({new_node:"
                          + context.getValue() + "}) aponta para o {next:próximo} nó ({next:" + nextValue + "}) "
-                         + "e o ponteiro ant. do {next:próximo nó} passa a apontar para o {node:novo nó}"
-                         +  "({" + context.getValue() + "}).\n";
+                         + "e o ponteiro ant. do {next:próximo nó} passa a apontar para o {new_node:novo nó}"
+                         +  "({new_node:" + context.getValue() + "}).\n";
 
         }
 
@@ -578,7 +578,7 @@ public final class InsertOperation {
 
                 return NodeAnimator.animateFill(
                     newNode, (Color) newNode.getFill(), 
-                    Color.rgb(0, 255, 0), 800, false
+                    Colors.node, 800, false
                 );
             }, 
             () -> {

@@ -5,11 +5,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 
 public final class StackBase extends Group {
-    Line left = new Line();
-    Line basis = new Line();
-    Line right = new Line();
-    double height;
-    double width;
+    private final Line left = new Line();
+    private final Line basis = new Line();
+    private final Line right = new Line();
+    private double height;
+    private double width;
 
     public StackBase(double width, double height, double strokeWidth){
         this.width = width;

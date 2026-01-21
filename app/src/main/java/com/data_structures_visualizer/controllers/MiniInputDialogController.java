@@ -76,7 +76,11 @@ public class MiniInputDialogController {
         String inputText2 = input_text_field2.getText();
 
         if(validateInput(inputText) && (validateInput(inputText2) || !other_input_line.isManaged())){
-            onConfirm.accept(Integer.parseInt(inputText), Integer.parseInt(inputText2.isEmpty() ? "0" : inputText2));
+            onConfirm.accept(
+                Integer.parseInt(inputText), 
+                Integer.parseInt(inputText2.isEmpty() ? "0" : inputText2)
+            );
+            
             stage.close();
         }
 

@@ -6,7 +6,7 @@ import com.data_structures_visualizer.models.entities.DoublyLinkedList;
 import com.data_structures_visualizer.models.entities.SinglyLinkedList;
 import com.data_structures_visualizer.models.text.ExplanationRepository;
 
-public final class DeleteContext extends Context {
+public final class DeleteContext extends ListContext {
     private final int value;
     private final boolean removeByIndex;
     private int indexToRemove;

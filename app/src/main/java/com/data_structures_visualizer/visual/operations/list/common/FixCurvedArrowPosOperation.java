@@ -42,8 +42,8 @@ public final class FixCurvedArrowPosOperation {
         double fromStartX = lastBounds.getMinX() + lastBounds.getWidth() / 2 - xOffset;
         double fromStartY = lastBounds.getMaxY();
 
-        double toStartX   = lastBounds.getMinX() + lastBounds.getWidth() / 2;
-        double toStartY   = lastBounds.getMaxY();
+        double toStartX = lastBounds.getMinX() + lastBounds.getWidth() / 2;
+        double toStartY = lastBounds.getMaxY();
 
         double fromEndX = firstBounds.getMinX() + firstBounds.getWidth() / 2 - xOffset;
         double fromEndY = fromStartY;

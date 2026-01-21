@@ -1,23 +1,30 @@
 package com.data_structures_visualizer.controllers;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.data_structures_visualizer.config.StackVisualizerConfig;
+import com.data_structures_visualizer.models.animation.AnimationTimeLine;
 import com.data_structures_visualizer.models.entities.Stack;
+import com.data_structures_visualizer.models.text.ExplanationRepository;
+import com.data_structures_visualizer.models.text.ExplanationText;
 import com.data_structures_visualizer.util.DialogFactory;
 import com.data_structures_visualizer.util.SceneManager;
 import com.data_structures_visualizer.util.Util;
+import com.data_structures_visualizer.visual.context.stack.StackContext;
+import com.data_structures_visualizer.visual.layout.LayoutManager;
+import com.data_structures_visualizer.visual.layout.StackLayoutManager;
+import com.data_structures_visualizer.visual.operations.Operation;
+import com.data_structures_visualizer.visual.operations.stack.PopOperation;
 import com.data_structures_visualizer.visual.operations.stack.PushOperation;
-import com.data_structures_visualizer.visual.ui.ArrowLabel;
-import com.data_structures_visualizer.visual.ui.StackBase;
+import com.data_structures_visualizer.visual.text.ExplanationTextParser;
 import com.data_structures_visualizer.visual.ui.VisualNode;
-import com.data_structures_visualizer.visual.ui.ArrowLabel.ArrowPosition;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.AnchorPane;
 
@@ -42,38 +49,86 @@ public final class StackVisualizerController {
     private Button pop_btn;
     @FXML     
     private Button clear_btn;
+    @FXML
+    private ProgressIndicator visualization_progress;
+    @FXML
+    private Button reset_btn;
+    @FXML
+    private Button step_backward_btn;
+    @FXML
+    private Button pause_btn;
+    @FXML
+    private Button step_forward_btn;
+    @FXML
+    private Button advance_btn;
 
-    private StackBase stackBase;
-    private final ArrayList<VisualNode> nodes = new ArrayList<VisualNode>();
-    private ArrowLabel topLabel;
+    private StackLayoutManager stackLayoutManager;
+
+    private final ExplanationRepository explanationRepository = new ExplanationRepository();
+    private final AnimationTimeLine animationTimeLine = new AnimationTimeLine();
 
     private final Stack<Integer> stack = new Stack<Integer>(null);
 
     @FXML
     public void initialize(){
-        topLabel = new ArrowLabel(StackVisualizerConfig.squareSize * 625 * 0.6, "TOPO", 15);
-        topLabel.setArrowPosition(ArrowPosition.RIGHT);
-        visualization_area.getChildren().add(topLabel);
+        startLayoutManager();
+        putStartExemple();
+        handleToScreenChange();
+        setupOperations();
+        setupControlButtons();
+        setupListeners();
+    }
 
+    private void startLayoutManager(){
+        stackLayoutManager = new StackLayoutManager(visualization_area);
+        stackLayoutManager.start();
+        stackLayoutManager.setExplanationTextRect(LayoutManager.createExplanationRect(visualization_area));
+    }
+
+    private void putStartExemple(){
         for(int i = 0; i < 9; ++i){  
-            nodes.add(i, new VisualNode(
+            stack.push(i);
+
+            stackLayoutManager.getNodes().add(i, new VisualNode(
                 625 * StackVisualizerConfig.squareSize, 
                 625 * StackVisualizerConfig.squareSize, 
                 Integer.toString(i))
             );
 
-            visualization_area.getChildren().add(nodes.get(i));
-        } 
+            visualization_area.getChildren().add(stackLayoutManager.getNodes().get(i));
+        }
+    }
 
-        handleToScreenChange();
-        setupOperations();
-
+    private void setupListeners(){
         visualization_area.layoutBoundsProperty().addListener((obs, odlVal, newVal) -> {
-            fixVisualizationAreaLayout(newVal.getWidth(), newVal.getHeight());
+            stackLayoutManager.fixVisualizationAreaLayout(newVal.getWidth(), newVal.getHeight());
         });
 
         speed_visualization_slider.valueProperty().addListener((obs, oldValue, newVal) -> {
             speed_visualization_label.setText(String.format("%.1f", 1 + newVal.doubleValue() / 100) + "x");
+            StackVisualizerConfig.speedVisualization = newVal.doubleValue();
+        });
+
+        visualization_progress.progressProperty().bind(animationTimeLine.progressProperty());
+
+        animationTimeLine.setOnFinished(() -> {
+            stackLayoutManager.fixVisualizationAreaLayout(
+                visualization_area.getWidth(), visualization_area.getHeight()
+            );
+        });
+
+        animationTimeLine.setOnStepChanged(index -> {
+            List<ExplanationText> explanations = explanationRepository.get(index);
+
+            if(!explanations.isEmpty()) {
+                stackLayoutManager.getExplanationTextRect().setContent(
+                    ExplanationTextParser.parse(explanations)
+                );
+            } 
+            
+            else{
+                stackLayoutManager.getExplanationTextRect().clear();
+            }
         });
     }
 
@@ -87,48 +142,13 @@ public final class StackVisualizerController {
         });
     }
 
-    private void fixVisualizationAreaLayout(double width, double height){
-        double updatedWidth = 0.15 * width;
-        double updatedHeight = 0.8 * height;
-        double updatedStroke = 0.004 * width;
-
-        if(stackBase == null){
-            stackBase = new StackBase(updatedWidth, updatedHeight, updatedStroke);
-            visualization_area.getChildren().add(stackBase);
-        } 
-
-        stackBase.update(updatedWidth, updatedHeight, updatedStroke);
-        AnchorPane.setTopAnchor(stackBase, (height / 2) - (stackBase.getHeight() / 2));
-        AnchorPane.setLeftAnchor(stackBase, (width / 2) - (stackBase.getWidth() / 2));
-
-        double yOffset = 0.0005 * height;
-        double initialHeight = updatedHeight + yOffset;
-        
-        for(int i = 0; i < nodes.size(); ++i){
-            nodes.get(i).update(height * StackVisualizerConfig.squareSize, 
-                height * StackVisualizerConfig.squareSize, height * 0.005
-            );
-            
-            AnchorPane.setTopAnchor(
-                nodes.get(i), 
-                initialHeight - ((1 + StackVisualizerConfig.spacingBetweenNodes) * nodes.get(i).getRect().getHeight() * i)
-            );
-
-            AnchorPane.setLeftAnchor(
-                nodes.get(i), 
-                (width / 2) - (nodes.get(i).getRect().getWidth()) / 2
-            );
-
-        }
-
-        anchorTopLabel(width, height);
-    }
-
     private void setupOperations(){
         create_btn.setOnAction(e -> {
             DialogFactory.showInputDialog("Insira o tamanho da pilha: ", 
                 null, (Integer lenght, Integer v) -> {
                 createStack(lenght);
+
+                stackLayoutManager.
                 fixVisualizationAreaLayout(visualization_area.getWidth(), visualization_area.getHeight());
             });
         });
@@ -149,8 +169,36 @@ public final class StackVisualizerController {
         clear_btn.setOnAction(e -> {
             DialogFactory.ConfirmDialog.show(
                 "Tem certeza que deseja limpar a área de visualização?", () -> {
-                clearVisualization();
+                stackLayoutManager.clearVisualization();
             });
+        });
+    }
+
+    private void setupControlButtons(){
+        reset_btn.setOnAction(e -> {
+            animationTimeLine.reset();
+        });
+        
+        step_backward_btn.setOnAction(e -> {
+            animationTimeLine.playPrevious(1.0);
+        });
+        
+        pause_btn.setOnAction(e -> {
+            if(animationTimeLine.isPlaying()){
+                animationTimeLine.pause();   
+            }
+            
+            else{
+                animationTimeLine.play();
+            }
+        });
+        
+        step_forward_btn.setOnAction(e -> {
+            animationTimeLine.playNext();
+        });
+        
+        advance_btn.setOnAction(e -> {
+            animationTimeLine.playFast();
         });
     }
 
@@ -165,62 +213,24 @@ public final class StackVisualizerController {
             return;
         }
 
-        clearVisualization();
+        stackLayoutManager.clearVisualization();
 
         for(int i = 0; i < lenght; ++i){
             Integer randInt = ThreadLocalRandom.current().nextInt(0, 9999);
 
             stack.push(randInt);
-            nodes.add(new VisualNode(625 * StackVisualizerConfig.squareSize, 
-                625 * StackVisualizerConfig.squareSize, 
-                String.valueOf(randInt)
+            stackLayoutManager.getNodes().add(new VisualNode(625 * StackVisualizerConfig.squareSize, 
+                625 * StackVisualizerConfig.squareSize, String.valueOf(randInt)
             ));
 
-            visualization_area.getChildren().add(nodes.get(i));
+            visualization_area.getChildren().add(stackLayoutManager.getNodes().get(i));
         }
-    }
-   
-    private void clearVisualization(){
-        for(VisualNode node : nodes){
-            visualization_area.getChildren().remove(node);
-        }
-
-        visualization_area.getChildren().remove(topLabel);
-        nodes.clear();
-    }
-
-    private void anchorTopLabel(double width, double height){
-        if(nodes.size() == 0){
-            visualization_area.getChildren().remove(topLabel);
-            return;
-        }
-
-        if(!visualization_area.getChildren().contains(topLabel)){
-            visualization_area.getChildren().add(topLabel);
-        }
-
-        double yOffset = 0.0005 * height;
-        double initialHeight =  0.8 * height + yOffset;
-        double arrowLenght = StackVisualizerConfig.squareSize * width * 1.02;
-        double xOffset = 2.3 * arrowLenght;
-
-        topLabel.update(arrowLenght, "TOPO", StackVisualizerConfig.squareSize * height / 3);
-        
-        AnchorPane.setTopAnchor(topLabel,
-            initialHeight - ((1 + StackVisualizerConfig.spacingBetweenNodes) * height * 
-            StackVisualizerConfig.squareSize * (nodes.size() - 1)) + 
-            (height * StackVisualizerConfig.squareSize) / 2 - (0.01 * height)
-        );
-        
-        AnchorPane.setLeftAnchor(topLabel,
-            (width / 2) - (topLabel.getArrow().getBaseLenght() / 2) - xOffset
-        );
     }
 
     private boolean emptyStackMessage(){
         if(stack.isEmpty()){
             Util.showAlert(
-                "Pilha Vazia!", 
+                "Pilha vazia!", 
                 "Não há elementos para desempilhar.", 
                 AlertType.CONFIRMATION
             );
@@ -231,12 +241,57 @@ public final class StackVisualizerController {
         return false;
     }
 
+    private StackContext createStackContext(Integer value, Operation op){
+        return new StackContext(
+            stack, value, visualization_area.getHeight(), explanationRepository
+        );
+    }
+
+    private boolean validatePush(){
+        if(stackLayoutManager.getNodes().size() >= StackVisualizerConfig.stackMaxLimit){
+            Util.showAlert(
+                "Pilha cheia!", 
+                String.format("A pilha atingiu a quantidade máxima: %d", StackVisualizerConfig.stackMaxLimit),
+                AlertType.CONFIRMATION
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
     private void pushNode(Integer value){
-        PushOperation op = new PushOperation();
+        animationTimeLine.clear();
+        explanationRepository.clear();
+        
+        if(!validatePush()) return;
+
+        StackContext context = createStackContext(value, Operation.INSERT);
+
+        PushOperation op = new PushOperation(
+            context, visualization_area, stackLayoutManager.getTopLabel(), 
+            stackLayoutManager.getNodes(), stackLayoutManager.getStackBase()
+        );
+
+        op.build(animationTimeLine);
+        animationTimeLine.play();
     }
 
     private void popNode(){
+        animationTimeLine.clear();
+        explanationRepository.clear();
+        
         if(emptyStackMessage()) return;
 
+        StackContext context = createStackContext(-1, Operation.INSERT);
+        
+        PopOperation op = new PopOperation(
+            context, visualization_area, stackLayoutManager.getTopLabel(), 
+            stackLayoutManager.getNodes(), stackLayoutManager.getStackBase()
+        );
+
+        op.build(animationTimeLine);
+        animationTimeLine.play();
     }
 }
