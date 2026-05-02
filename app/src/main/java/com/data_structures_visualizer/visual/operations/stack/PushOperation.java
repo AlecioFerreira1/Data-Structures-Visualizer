@@ -111,7 +111,7 @@ public final class PushOperation {
         context.getExplanationRepository().addExplanation(
             timeLine.size(),
             new ExplanationText(timeLine.size(), 
-                String.format("O novo {node:nó %d} foi adicionado à pilha.", context.getValueToPush())
+                String.format("O novo {inserted:nó %d} foi adicionado à pilha.", context.getValueToPush())
             )
         );
 

@@ -8,7 +8,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 public final class TextFactory {
-    private static final Font DEFAULT_FONT = Font.font("System", FontWeight.SEMI_BOLD, 16);
+    private static final Font DEFAULT_FONT = Font.font("System", FontWeight.SEMI_BOLD, 15);
 
     private TextFactory() { }
 
@@ -21,15 +21,16 @@ public final class TextFactory {
 
     public static Text styledText(String type, String content) {
         return switch (type) {
-            case "next"       -> create(content, Colors.next); 
-            case "prev"       -> create(content, Colors.prev); 
-            case "node"       -> create(content, Colors.node);
-            case "new_node"   -> create(content, Colors.newNode);
-            case "found"      -> create(content, Color.web("#2E7D32")); 
-            case "not_found"  -> create(content, Color.web("#C62828")); 
-            case "inserted"   -> create(content, Color.web("#00FF00")); 
-            case "remove"     -> create(content, Colors.remove);
-            default           -> create(content, Color.web("#212121")); 
+            case "next"                -> create(content, Colors.next); 
+            case "prev"                -> create(content, Colors.prev); 
+            case "node"                -> create(content, Colors.node);
+            case "new_node"            -> create(content, Colors.newNode);
+            case "found"               -> create(content, Color.web("#2E7D32")); 
+            case "not_found"           -> create(content, Color.web("#C62828")); 
+            case "inserted"            -> create(content, Colors.nodeDark); 
+            case "remove"              -> create(content, Colors.remove);
+            case "highlight_to_remove" -> create(content, Color.GOLD);
+            default                    -> create(content, Color.web("#212121")); 
         };
     }
 }

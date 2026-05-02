@@ -217,6 +217,9 @@ public final class ListLayoutManager {
                     visualization_area.getChildren().add(curvedArrow);
                 }
 
+                curvedArrow.setTranslateX(0);
+                curvedArrow.setTranslateY(0);
+
                 if(nodes.size() == 1){
                     startX = last.getLayoutX() + last.getRect().getWidth();
                     startY = last.getLayoutY() + (last.getRect().getHeight() / 2);

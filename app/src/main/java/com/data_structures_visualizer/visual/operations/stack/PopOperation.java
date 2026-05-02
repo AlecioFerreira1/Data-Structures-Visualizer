@@ -40,8 +40,8 @@ public final class PopOperation {
     public void build(AnimationTimeLine timeLine){
         addHighlightTopStep(timeLine);
         addPopAnimationStep(timeLine);
-        addUpdateTopStep(timeLine);
         addRemoveNodeStep(timeLine);
+        addUpdateTopStep(timeLine);
     } 
 
     private void addHighlightTopStep(AnimationTimeLine timeLine){
@@ -126,7 +126,7 @@ public final class PopOperation {
 
                 return animation;
             }, 
-            () ->{
+            () -> {
                 VisualNode node = removedNodes.pop();
 
                 context.getStack().push(value);
@@ -144,7 +144,7 @@ public final class PopOperation {
         context.getExplanationRepository().addExplanation(
             timeLine.size(),
             new ExplanationText(timeLine.size(), 
-                String.format("O topo da pilha passa a ser o nó {node:nó %s}.", 
+                String.format("O topo da pilha passa a ser o {inserted:nó %s}.", 
                 nodes.get(nodes.size() - 2).getText())
             )
         );

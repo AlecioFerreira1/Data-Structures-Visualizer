@@ -6,6 +6,7 @@ import com.data_structures_visualizer.config.ListVisualizerConfig;
 import com.data_structures_visualizer.controllers.ListVisualizerController.ListType;
 import com.data_structures_visualizer.models.animation.AnimationTimeLine;
 import com.data_structures_visualizer.models.animation.Step;
+import com.data_structures_visualizer.models.text.ExplanationText;
 import com.data_structures_visualizer.visual.animation.AnimationUtils;
 import com.data_structures_visualizer.visual.animation.ArrowAnimator;
 import com.data_structures_visualizer.visual.animation.NodeAnimator;
@@ -16,17 +17,18 @@ import com.data_structures_visualizer.visual.operations.Operation;
 import com.data_structures_visualizer.visual.operations.list.common.FixArrowLabelsPosOperation;
 import com.data_structures_visualizer.visual.operations.list.common.FixCurvedArrowPosOperation;
 import com.data_structures_visualizer.visual.operations.list.common.RepositionNodesOperation;
-import com.data_structures_visualizer.visual.operations.list.common.TransverseAndHighlightOperation;
 import com.data_structures_visualizer.visual.ui.Arrow;
 import com.data_structures_visualizer.visual.ui.ArrowLabel;
 import com.data_structures_visualizer.visual.ui.CurvedArrow;
 import com.data_structures_visualizer.visual.ui.VisualNode;
 
 import javafx.animation.Animation;
+import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 
 public final class DeleteOperation {
     private final DeleteContext context;
@@ -63,18 +65,25 @@ public final class DeleteOperation {
         addRemoveNodeStep(timeLine);
         addEstablishConnectionsStep(timeLine);
         addFixLayoutStep(timeLine);
+        addNotifyChangesStep(timeLine);
     }
 
     private void addTransversalStep(AnimationTimeLine timeLine){
         int index = context.getSinglyLinkedList().indexOf(context.getValue());
          
         if(context.removeByIndex()) index = context.getValue();
-        
-        new TransverseAndHighlightOperation(
-            nodes, timeLine, context.getExplanationRepository()
-        ).build(index == -1 ? nodes.size() : index, context.getValue());
 
         context.setIndexToRemove(index);
+
+        buildExplanationBeforeTransversalStep(timeLine.size());
+        
+        new SearchOperation(
+            context.getSinglyLinkedList(), nodes, 
+            !context.removeByIndex() ? context.getValue() : context.getSinglyLinkedList().get(index), 
+            context.getExplanationRepository()
+        ).build(timeLine);
+
+        buildExplanationAfterTransversalStep(timeLine.size());
 
         Color green = Color.rgb(0, 255, 25);
 
@@ -88,21 +97,19 @@ public final class DeleteOperation {
 
     private Animation applyHighLights(Color prevRectColor, Color targetRectColor, Color nextRectColor){
         int index = context.getIndexToRemove();
-
+ 
         if(nodes.isEmpty()) return AnimationUtils.emptyAnimation();
 
-        if(index == nodes.size())
-            index--;
-
-        final Rectangle targetRect = nodes.get(index < 0 ? 0 : index).getRect();
+        final int listLength = context.getSinglyLinkedList().lenght();
+        final Rectangle targetRect = nodes.get(index >= listLength ? 0 : index).getRect();
         Rectangle prevRect = nodes.get(index - 1 >= 0 ? index - 1 : 0).getRect();
         Rectangle nextRect = nodes.get(index + 1 < nodes.size() ? index + 1 : 0).getRect();
         double speed = ListVisualizerConfig.speedVisualization;
         
         return new SequentialTransition(
-            NodeAnimator.animateFill(
+            index < listLength ? NodeAnimator.animateFill(
                 targetRect, (Color) targetRect.getFill(), targetRectColor, (int) (700 * speed), false
-            ),
+            ) : AnimationUtils.emptyAnimation(),
             index - 1 >= 0 ? NodeAnimator.animateFill(
                 prevRect, (Color) prevRect.getFill(), prevRectColor, (int) (700 * speed), false
             ) : AnimationUtils.emptyAnimation(),
@@ -122,6 +129,8 @@ public final class DeleteOperation {
         double speed = ListVisualizerConfig.speedVisualization;
 
         if(index - 1 < 0) return;
+
+        buildExplanationForDesconnectArrows(timeLine.size(), true);
 
         timeLine.addStep(new Step(
             () -> {
@@ -153,8 +162,7 @@ public final class DeleteOperation {
                 return animation;
             },
             () -> {
-                if(index == nodes.size() - 1) 
-                    return undoRemoveArrows();
+                if(index == nodes.size() - 1) return undoRemoveArrows();
 
                 return new SequentialTransition(
                     context.getListType() == ListType.DOUBLY ?
@@ -171,6 +179,8 @@ public final class DeleteOperation {
         double speed = ListVisualizerConfig.speedVisualization;
 
         if(index >= arrows.size()) return;
+
+        buildExplanationForDesconnectArrows(timeLine.size(), false);
 
         timeLine.addStep(new Step(
             () -> {
@@ -237,6 +247,12 @@ public final class DeleteOperation {
 
     private void addRemoveNodeStep(AnimationTimeLine timeLine){
         double speed = ListVisualizerConfig.speedVisualization;
+        String nodeValue = context.getSinglyLinkedList().get(context.getIndexToRemove()).toString();
+
+        context.getExplanationRepository().addExplanation(timeLine.size(), 
+            new ExplanationText(timeLine.size(), 
+            "Removendo o nó {highlight_to_remove:" + nodeValue + "}."
+        ));
 
         timeLine.addStep(new Step(
             () -> {
@@ -256,7 +272,7 @@ public final class DeleteOperation {
 
                 return animation;
             }, 
-            () ->{
+            () -> {
                 VisualNode node = exec.getRemovedNodes().pop();
 
                 nodes.add(context.getIndexToRemove(), node); 
@@ -274,8 +290,10 @@ public final class DeleteOperation {
     }
 
     private void addEstablishConnectionsStep(AnimationTimeLine timeLine){
-        double speed = ListVisualizerConfig.speedVisualization;
-        Color green = Color.rgb(0, 255, 25);
+        final double speed = ListVisualizerConfig.speedVisualization;
+        final Color green = Color.rgb(0, 255, 25);
+
+        buildExplanationForEstablishConnections(timeLine.size());
         
         timeLine.addStep(new Step(
             () -> {
@@ -330,16 +348,166 @@ public final class DeleteOperation {
     }
 
     private void addFixLayoutStep(AnimationTimeLine timeLine){
-        FixArrowLabelsPosOperation fixLayout = new FixArrowLabelsPosOperation(
+        buildExplanationForFixlayout(timeLine.size());
+
+        new FixArrowLabelsPosOperation(
             headLabel, tailLabel, context.getxOffset(), context.getIndexToRemove(), nodes.size()
-        );
+        ).build(timeLine, false, Operation.DELETE);
 
-        fixLayout.build(timeLine, false, Operation.DELETE);
+        if(context.getCircularLinkedList().lenght() > 1){
+            if(context.getIndexToRemove() == context.getCircularLinkedList().lenght() - 1 || context.getIndexToRemove() == 0){
+                context.getExplanationRepository().addExplanation(timeLine.size(), 
+                    new ExplanationText(timeLine.size(), 
+                        context.getListType() == ListType.CIRCULAR ? 
+                        "A cauda volta a apontar para a cabeça." : ""
+                    )
+                );
+            }
 
-        FixCurvedArrowPosOperation fixCurvedArrow = new FixCurvedArrowPosOperation(
-            nodes, curvedArrow, visualization_area, context.getxOffset(), context.getListType()
-        );
-
-        fixCurvedArrow.build(timeLine);
+            new FixCurvedArrowPosOperation(
+                nodes, curvedArrow, visualization_area, context.getxOffset(), context.getListType()
+            ).build(timeLine);
+        }
     }
-}
+
+    private void buildExplanationBeforeTransversalStep(int timeLineSize){
+        if(context.getIndexToRemove() == -1) return;
+
+        if(context.getIndexToRemove() != 0){ 
+            int valueToDelete = context.getSinglyLinkedList().get(context.getIndexToRemove());
+
+            context.getExplanationRepository().addExplanation(0, 
+                new ExplanationText(0, 
+                    "Primeiro, é feita uma busca da nó a ser removido: valor {node:" 
+                    + String.valueOf(valueToDelete) + "}.\n"
+                )
+            );   
+        }
+
+        else{
+            context.getExplanationRepository().addExplanation(0, 
+                new ExplanationText(0, "Remoção na cabeça.\n")
+            );
+        }
+    }
+
+    private void buildExplanationAfterTransversalStep(int timeLineSize){
+        if(context.getIndexToRemove() == -1) return;
+
+        if(context.getIndexToRemove() == nodes.size() - 1){
+            context.getExplanationRepository().addExplanation(timeLineSize, 
+                new ExplanationText(timeLineSize, "Remoção na cauda.\n")
+            );
+        }
+
+        if(context.getIndexToRemove() != 0){
+            context.getExplanationRepository().addExplanation(timeLineSize, 
+                new ExplanationText(timeLineSize, 
+                    "Nó {prev:anterior} (Valor {prev:" + nodes.get(context.getIndexToRemove() - 1).getText() + "})."
+                )
+            );
+        }
+
+        if(context.getIndexToRemove() + 1 < nodes.size()){
+            context.getExplanationRepository().addExplanation(timeLineSize, 
+                new ExplanationText(timeLineSize, 
+                    "{next:Próximo } nó: (Valor {next:" + 
+                    String.valueOf(nodes.get(context.getIndexToRemove() + 1).getText()) + "})." 
+                )
+            );
+        }
+    }
+
+    private void buildExplanationForDesconnectArrows(int timeLineSize, boolean prev){
+        int index = context.getIndexToRemove();
+        String nodeValue = "";
+        String explanation = "";
+    
+        if(prev){
+            String prevNodeValue = context.getSinglyLinkedList().get(index - 1).toString();
+            nodeValue = context.getSinglyLinkedList().get(index).toString();
+            explanation = "O ponteiro prox. do nó {prev: " + prevNodeValue + "}" +
+                    " deixa de apontar para o nó {highlight_to_remove:" + nodeValue + "}";
+
+            if(context.getListType() == ListType.DOUBLY){
+                explanation += " e o ponteiro ant. do nó {highlight_to_remove:" + nodeValue + "} "
+                            + "deixa de apontar para o nó {prev:" + prevNodeValue + "}";
+            }
+        }
+
+        else{
+            String nextNodeValue = context.getSinglyLinkedList().get(index + 1).toString();
+            nodeValue = context.getSinglyLinkedList().get(index).toString();
+            explanation = "O ponteiro prox. do nó {highlight_to_remove: " + nodeValue + "}" +
+                    " deixa de apontar para o nó {next:" + nextNodeValue + "}";
+
+            if(context.getListType() == ListType.DOUBLY){
+                explanation += " e o ponteiro ant. do nó {next:" + nextNodeValue + "} "
+                            + "deixa de apontar para o nó {highlight_to_remove:" + nodeValue + "}";
+            }
+        }
+
+        context.getExplanationRepository().addExplanation(timeLineSize, 
+            new ExplanationText(timeLineSize, explanation)
+        );
+
+        explanation += ".";
+    }
+
+    private void buildExplanationForEstablishConnections(int timeLineSize){
+        String explanation = "";
+        int index = context.getIndexToRemove();
+
+        if(index != 0 && index != context.getSinglyLinkedList().lenght() - 1){
+            String prevNodeValue = context.getSinglyLinkedList().get(index - 1).toString();
+            String nextNodeValue = context.getSinglyLinkedList().get(index + 1).toString();
+
+            explanation += "O ponteiro prox. do nó {prev:" + prevNodeValue + "} passa a apontar para o nó "
+                        +  "{next:" + nextNodeValue + "}";
+
+            if(context.getListType() == ListType.DOUBLY){
+                explanation += "e o ponteiro ant. do nó {next:" + nextNodeValue + "} passa a apontar para o nó "
+                        +  "{prev:" + prevNodeValue + "}";
+            }
+
+            explanation += ".";
+        }
+
+        context.getExplanationRepository().addExplanation(timeLineSize, 
+            new ExplanationText(timeLineSize, explanation)
+        );
+    }
+
+    private void buildExplanationForFixlayout(int timeLineSize){
+        String explanation = "";
+        int index = context.getIndexToRemove();
+
+        if(index == 0 && context.getSinglyLinkedList().lenght() > 1){
+            explanation += "O nó {node:" + context.getSinglyLinkedList().get(1).toString() + "} "
+                        + "passa a ser a nova cabeça.";
+        }
+
+        else if(index == context.getSinglyLinkedList().lenght() - 1 && context.getSinglyLinkedList().lenght() > 1){
+            explanation += "O nó {node:" + context.getSinglyLinkedList().get(index).toString() + "} "
+                        +  "passa a ser a nova cauda.";
+        }
+
+        context.getExplanationRepository().addExplanation(timeLineSize, 
+            new ExplanationText(timeLineSize, explanation)
+        );
+    }
+
+    private void addNotifyChangesStep(AnimationTimeLine timeLine){
+        context.getExplanationRepository().addExplanation(
+            timeLine.size(),
+            new ExplanationText(timeLine.size(), 
+                "Nó ({remove:" + context.getValue() + "}) removido."
+            )
+        );
+
+        timeLine.addStep(new Step(
+            () -> new PauseTransition(Duration.seconds(2)), 
+            () -> new PauseTransition(Duration.seconds(2))
+        ));
+    }
+}  

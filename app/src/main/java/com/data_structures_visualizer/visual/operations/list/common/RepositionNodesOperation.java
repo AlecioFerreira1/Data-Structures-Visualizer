@@ -54,7 +54,7 @@ public final class RepositionNodesOperation {
             }
         }
 
-        if(visualization_area.getChildren().contains(headLabel) && startIndex == 0 & op != Operation.DELETE){
+        if(visualization_area.getChildren().contains(headLabel) && startIndex == 0 && op != Operation.DELETE){
             toMove.add(headLabel);
         }
 

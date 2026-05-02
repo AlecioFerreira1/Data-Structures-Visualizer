@@ -94,9 +94,7 @@ public final class ListVisualizerController {
     private final DoublyLinkedList<Integer> doublyLikedList = new DoublyLinkedList<Integer>(null);
     private final CircularLinkedList<Integer> circularLinkedList = new CircularLinkedList<Integer>(null);
 
-    public enum ListType{
-        SINGLY, DOUBLY, CIRCULAR
-    }
+    public enum ListType{ SINGLY, DOUBLY, CIRCULAR }
 
     private static class SelectionWindowDialog{
         public static void show(String message, Runnable opt1, Runnable opt2, Runnable opt3){

@@ -25,6 +25,7 @@ import com.data_structures_visualizer.visual.ui.CurvedArrow;
 import com.data_structures_visualizer.visual.ui.VisualNode;
 
 import javafx.animation.Animation;
+import javafx.animation.ParallelTransition;
 import javafx.animation.SequentialTransition;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
@@ -240,7 +241,7 @@ public final class InsertOperation {
         ));
     }
 
-    private void  buildExplanationBeforeTransversalStep(AnimationTimeLine timeLine){
+    private void buildExplanationBeforeTransversalStep(AnimationTimeLine timeLine){
         if(context.getPos() != 0){
             if(context.getPos() == nodes.size()){
                 context.getExplanationRepository().addExplanation(0, 
@@ -356,11 +357,6 @@ public final class InsertOperation {
     }
 
     private void addCreateNodeStep(AnimationTimeLine timeLine){
-        RepositionNodesOperation repositionNodes = new RepositionNodesOperation(
-            nodes, arrows, prevArrows, headLabel, tailLabel, visualization_area, 
-            context.getInitialListSize(), context.getListType()
-        );
-
         context.getExplanationRepository().addExplanation(
             timeLine.size(),
             new ExplanationText(timeLine.size(), 
@@ -368,15 +364,30 @@ public final class InsertOperation {
             )
         );
 
+        final double xOffset = context.getPos() == nodes.size() ? 0 : context.getxOffset();  
+
+        final RepositionNodesOperation repositionNodes = new RepositionNodesOperation(
+            nodes, arrows, prevArrows, headLabel, tailLabel, visualization_area, 
+            context.getInitialListSize(), context.getListType()
+        );
+
         timeLine.addStep(new Step(
-            () -> new SequentialTransition(
-                repositionNodes.build(context.getPos(), context.getxOffset(), Operation.INSERT),
-                createNode(context.getNodeWidth(), context.getValue(), context.getPos())
-            ),
-            () -> new SequentialTransition(
-                undoCreateNode(),
-                repositionNodes.build(context.getPos(), -context.getxOffset(), Operation.INSERT)
-            )
+            () -> {
+                return new SequentialTransition(
+                    new ParallelTransition(
+                        repositionNodes.build(context.getPos(), xOffset, Operation.INSERT)
+                    ),
+                    createNode(context.getNodeWidth(), context.getValue(), context.getPos())
+                );
+            },
+            () -> {
+                return new SequentialTransition(
+                    undoCreateNode(),
+                    new ParallelTransition(
+                        repositionNodes.build(context.getPos(), -xOffset, Operation.INSERT)
+                    )
+                );
+            }
         ));
     }
 

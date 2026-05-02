@@ -13,9 +13,9 @@ public class MainApp extends Application {
 
         primaryStage.setWidth(1260);
         primaryStage.setHeight(800);
-        primaryStage.setResizable(true);
-        // primaryStage.setMinWidth(800);
-        // primaryStage.setMinHeight(600);
+        primaryStage.setResizable(false);
+        primaryStage.setMinWidth(800);
+        primaryStage.setMinHeight(600);
             
         SceneManager.init(primaryStage);
         SceneManager.changeScene("/fxml/ListVisualizerScreen.fxml");
