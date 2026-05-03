@@ -4,7 +4,7 @@ import com.data_structures_visualizer.models.entities.Stack;
 import com.data_structures_visualizer.visual.ui.Arrow;
 import com.data_structures_visualizer.visual.ui.VisualNode;
 
-public final class QueueExecutionContext {
+public final class EnqueueExecutionContext {
     private final Stack<VisualNode> createdNodes = new Stack<VisualNode>(null);
     private final Stack<Arrow> createdArrows = new Stack<Arrow>(null);
 

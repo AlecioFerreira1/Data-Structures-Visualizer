@@ -12,7 +12,7 @@ import com.data_structures_visualizer.visual.animation.ArrowAnimator;
 import com.data_structures_visualizer.visual.animation.ArrowAnimator.DrawArrowDirection;
 import com.data_structures_visualizer.visual.animation.NodeAnimator;
 import com.data_structures_visualizer.visual.context.queue.QueueContext;
-import com.data_structures_visualizer.visual.context.queue.QueueExecutionContext;
+import com.data_structures_visualizer.visual.context.queue.EnqueueExecutionContext;
 import com.data_structures_visualizer.visual.operations.Operation;
 import com.data_structures_visualizer.visual.operations.list.common.FixArrowLabelsPosOperation;
 import com.data_structures_visualizer.visual.ui.Arrow;
@@ -27,7 +27,7 @@ import javafx.scene.shape.Rectangle;
 
 public final class EnqueueOperation {
     private final QueueContext context;
-    private final QueueExecutionContext exec = new QueueExecutionContext();
+    private final EnqueueExecutionContext exec = new EnqueueExecutionContext();
     private final AnchorPane visualization_area;
     private final ArrayList<VisualNode> nodes;
     private final ArrayList<Arrow> arrows;
