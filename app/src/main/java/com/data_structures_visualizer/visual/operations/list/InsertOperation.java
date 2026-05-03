@@ -77,6 +77,9 @@ public final class InsertOperation {
         final double width = visualization_area.getWidth();
         final double height = visualization_area.getHeight();
 
+        double leftAnchorValue = (ListVisualizerConfig.xOffsetForNodes * width) + 
+            (size * (1.0 + ListVisualizerConfig.spacingBetweenNodes) * pos);
+
         context.getSinglyLinkedList().insertOnPos(value, pos);
         context.getDoublyLikedList().insertOnPos(value, pos);
         context.getCircularLinkedList().insertOnPos(value, pos);
@@ -92,14 +95,11 @@ public final class InsertOperation {
         exec.getCreatedNodes().push(newNode);
 
         AnchorPane.setTopAnchor(newNode, startHeight);
-        AnchorPane.setLeftAnchor(
-            newNode, (ListVisualizerConfig.xOffsetForNodes * width) + 
-            (size * (1.0 + ListVisualizerConfig.spacingBetweenNodes) * pos)
-        );
+        AnchorPane.setLeftAnchor(newNode, leftAnchorValue);
 
         SequentialTransition st = new SequentialTransition(
             NodeAnimator.emergeEffect(newNode, 3 * ListVisualizerConfig.speedVisualization, true),
-            NodeAnimator.highlight(newNode.getRect(), pos, Colors.node)
+            NodeAnimator.highlight(newNode.getRect(), 700, Color.GOLD)
         );  
 
         st.setOnFinished(e -> { newNode.getRect().setStroke(Color.BLACK); });
@@ -603,10 +603,6 @@ public final class InsertOperation {
     }
 
     private void addFixLabelsStep(AnimationTimeLine timeLine){
-        FixArrowLabelsPosOperation fixArrowLabels = new FixArrowLabelsPosOperation(
-            headLabel, tailLabel, context.getxOffset(), context.getPos(), context.getInitialListSize()
-        );
-
         String explantion = "";
 
         if(context.getPos() == context.getInitialListSize()){
@@ -621,7 +617,9 @@ public final class InsertOperation {
             new ExplanationText(timeLine.size(), explantion)
         );
 
-        fixArrowLabels.build(timeLine, true, Operation.INSERT);
+        new FixArrowLabelsPosOperation(
+            headLabel, tailLabel, context.getxOffset(), context.getPos(), context.getInitialListSize()
+        ).build(timeLine, true, Operation.INSERT);
     }
 
     private void addStepToMoveCurvedArrowIfNeeded(AnimationTimeLine timeLine){
@@ -632,8 +630,7 @@ public final class InsertOperation {
         context.getExplanationRepository().addExplanation(timeLine.size(), 
             new ExplanationText(timeLine.size(), 
                 context.getListType() == ListType.CIRCULAR ? 
-                "A cauda volta a apontar para a cabeça." : 
-                ""
+                "A cauda volta a apontar para a cabeça." : ""
             )
         );
 

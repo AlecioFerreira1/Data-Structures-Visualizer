@@ -125,7 +125,7 @@ public class DoublyLinkedList<T> implements List<T> {
 
   @Override
   public void removeItem(int pos){
-    if(head == null) return;
+    if(head == null || pos >= lenght) return;
 
     if(pos == 0){
       head = head.getNext();
@@ -142,8 +142,6 @@ public class DoublyLinkedList<T> implements List<T> {
     for(int i = 0; i < pos && tmp.getNext() != null; ++i){
       tmp = tmp.getNext();
     }
-
-    if(pos >= lenght) return;
 
     Node<T> tmpPrev = tmp.getPrev(); 
     Node<T> tmpNext = tmp.getNext();

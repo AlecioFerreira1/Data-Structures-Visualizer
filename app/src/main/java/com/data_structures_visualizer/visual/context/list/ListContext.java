@@ -9,7 +9,7 @@ import com.data_structures_visualizer.models.text.ExplanationRepository;
 
 public abstract class ListContext {
     protected final ListType listType;
-    protected final double xOffset;
+    protected double xOffset;
     protected final SinglyLinkedList<Integer> singlyLinkedList;
     protected final DoublyLinkedList<Integer> doublyLinkedList;
     protected final CircularLinkedList<Integer> circularLinkedList;
@@ -52,5 +52,9 @@ public abstract class ListContext {
 
     public ExplanationRepository getExplanationRepository() {
         return explanationRepository;    
+    }
+
+    public void setXoffset(double xOffset){
+        this.xOffset = xOffset;
     }
 }

@@ -510,10 +510,10 @@ public final class ListVisualizerController {
     }
 
     private void insertNode(int value, int pos){
+        if(!validadeInsertion(pos)) return;
+
         animationTimeLine.clear();
         explanationRepository.clear();
-        
-        if(!validadeInsertion(pos)) return;
 
         InsertContext insertContext = buildInsertContext(value, pos);
 
@@ -538,10 +538,10 @@ public final class ListVisualizerController {
     }
 
     private void deleteNode(int value, boolean removeByIndex){
+        if(!validadeDeletion(removeByIndex, value)) return;
+
         animationTimeLine.clear();
         explanationRepository.clear();
-
-        if(!validadeDeletion(removeByIndex, value)) return;
 
         DeleteContext deleteContext = buildDeleteContext(value, removeByIndex);
 

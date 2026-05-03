@@ -107,7 +107,7 @@ public class SinglyLinkedList<T> implements List<T>{
 
   @Override
   public void removeItem(int pos){
-    if(head == null) return;
+    if(head == null || pos >= lenght) return;
 
     if(pos == 0){
       head = head.getNext();

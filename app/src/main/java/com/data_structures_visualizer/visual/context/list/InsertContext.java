@@ -43,10 +43,6 @@ public final class InsertContext extends ListContext{
         return nodeWidth;
     }
 
-    public double getxOffset() {
-        return xOffset;
-    } 
-
     public int getInitialListSize(){
         return intialListSize;
     }

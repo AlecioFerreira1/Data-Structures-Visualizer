@@ -14,7 +14,6 @@ import com.data_structures_visualizer.util.Util;
 import com.data_structures_visualizer.visual.context.stack.StackContext;
 import com.data_structures_visualizer.visual.layout.LayoutManager;
 import com.data_structures_visualizer.visual.layout.StackLayoutManager;
-import com.data_structures_visualizer.visual.operations.Operation;
 import com.data_structures_visualizer.visual.operations.stack.PopOperation;
 import com.data_structures_visualizer.visual.operations.stack.PushOperation;
 import com.data_structures_visualizer.visual.text.ExplanationTextParser;
@@ -241,7 +240,7 @@ public final class StackVisualizerController {
         return false;
     }
 
-    private StackContext createStackContext(Integer value, Operation op){
+    private StackContext createStackContext(Integer value){
         return new StackContext(
             stack, value, visualization_area.getHeight(), explanationRepository
         );
@@ -262,12 +261,12 @@ public final class StackVisualizerController {
     }
 
     private void pushNode(Integer value){
-        animationTimeLine.clear();
-        explanationRepository.clear();
-        
         if(!validatePush()) return;
 
-        StackContext context = createStackContext(value, Operation.INSERT);
+        animationTimeLine.clear();
+        explanationRepository.clear();
+
+        StackContext context = createStackContext(value);
 
         PushOperation op = new PushOperation(
             context, visualization_area, stackLayoutManager.getTopLabel(), 
@@ -279,12 +278,12 @@ public final class StackVisualizerController {
     }
 
     private void popNode(){
-        animationTimeLine.clear();
-        explanationRepository.clear();
-        
         if(emptyStackMessage()) return;
 
-        StackContext context = createStackContext(-1, Operation.INSERT);
+        animationTimeLine.clear();
+        explanationRepository.clear();
+
+        StackContext context = createStackContext(-1);
         
         PopOperation op = new PopOperation(
             context, visualization_area, stackLayoutManager.getTopLabel(), 

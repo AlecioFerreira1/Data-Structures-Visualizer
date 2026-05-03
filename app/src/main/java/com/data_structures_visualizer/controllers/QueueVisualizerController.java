@@ -1,24 +1,31 @@
 package com.data_structures_visualizer.controllers;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.data_structures_visualizer.config.ListVisualizerConfig;
 import com.data_structures_visualizer.config.QueueVisualizerConfig;
+import com.data_structures_visualizer.models.animation.AnimationTimeLine;
 import com.data_structures_visualizer.models.entities.Queue;
+import com.data_structures_visualizer.models.text.ExplanationRepository;
+import com.data_structures_visualizer.models.text.ExplanationText;
 import com.data_structures_visualizer.util.DialogFactory;
 import com.data_structures_visualizer.util.SceneManager;
 import com.data_structures_visualizer.util.Util;
+import com.data_structures_visualizer.visual.context.queue.QueueContext;
+import com.data_structures_visualizer.visual.layout.LayoutManager;
+import com.data_structures_visualizer.visual.layout.QueueLayoutManager;
+import com.data_structures_visualizer.visual.operations.queue.DequeueOperation;
+import com.data_structures_visualizer.visual.operations.queue.EnqueueOperation;
+import com.data_structures_visualizer.visual.text.ExplanationTextParser;
 import com.data_structures_visualizer.visual.ui.Arrow;
-import com.data_structures_visualizer.visual.ui.ArrowLabel;
-import com.data_structures_visualizer.visual.ui.ArrowLabel.ArrowPosition;
-import com.data_structures_visualizer.visual.ui.QueueDelimiter;
 import com.data_structures_visualizer.visual.ui.VisualNode;
 
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.AnchorPane;
@@ -44,39 +51,53 @@ public final class QueueVisualizerController {
     private Button dequeue_btn;
     @FXML     
     private Button clear_btn;
+    @FXML
+    private ProgressIndicator visualization_progress;
+    @FXML
+    private Button reset_btn;
+    @FXML
+    private Button step_backward_btn;
+    @FXML
+    private Button pause_btn;
+    @FXML
+    private Button step_forward_btn;
+    @FXML
+    private Button advance_btn;
 
-    private QueueDelimiter queueDelimiter;
-    private final ArrayList<VisualNode> nodes = new ArrayList<VisualNode>();
-    private final ArrayList<Arrow> arrows = new ArrayList<Arrow>();
+    private QueueLayoutManager queueLayoutManager;
 
-    private ArrowLabel startLabel;
-    private ArrowLabel endLabel;
+    private final ExplanationRepository explanationRepository = new ExplanationRepository();
+    private final AnimationTimeLine animationTimeLine = new AnimationTimeLine();
 
     private final Queue<Integer> queue = new Queue<Integer>(null);
 
     @FXML
     public void initialize(){
-        startLabel = new ArrowLabel(
-            QueueVisualizerConfig.spacingBetweenNodes * QueueVisualizerConfig.squareSize * 625, 
-            "INÍCIO", 15
-        );
+        startLayoutManager();
+        putStartExample();
+        handleToScreenChange();
+        setupOperations();
+        setupControlButtons();
+        setupListeners();
+    }
 
-        startLabel.setArrowPosition(ArrowPosition.BELOW);
+    private void startLayoutManager(){
+        queueLayoutManager = new QueueLayoutManager(visualization_area);
+        queueLayoutManager.start();
+        queueLayoutManager.setExplanationTextRect(LayoutManager.createExplanationRect(visualization_area));
+    }
 
-        endLabel = new ArrowLabel(
-            QueueVisualizerConfig.spacingBetweenNodes * QueueVisualizerConfig.squareSize * 625,
-             "FIM", 15
-        );
+    private void putStartExample(){
+        final ArrayList<VisualNode> nodes = queueLayoutManager.getNodes();
+        final ArrayList<Arrow> arrows = queueLayoutManager.getArrows();
 
-        endLabel.setArrowPosition(ArrowPosition.BELOW);
-
-        for(int i = 0; i < 12; ++i){  
+        for(int i = 0; i < 11; ++i){  
             nodes.add(i, new VisualNode(
                 625 * QueueVisualizerConfig.squareSize, 
                 625 * QueueVisualizerConfig.squareSize, Integer.toString(i)
             ));
 
-            if(i < 11){
+            if(i < 10){
                 arrows.add(i, new Arrow(
                     ListVisualizerConfig.spacingBetweenNodes * ListVisualizerConfig.squareSize 
                 ));
@@ -85,20 +106,7 @@ public final class QueueVisualizerController {
             }
 
             visualization_area.getChildren().add(nodes.get(i));
-        } 
-
-        handleToScreenChange();
-        setupOperations();
-
-        visualization_area.layoutBoundsProperty().addListener((obs, odlVal, newVal) -> {
-            if(newVal.getWidth() > 0 && newVal.getHeight() > 0){
-                fixVisualizationAreaLayout(newVal.getWidth(), newVal.getHeight());
-            }
-        });
-
-        speed_visualization_slider.valueProperty().addListener((obs, oldValue, newVal) -> {
-            speed_visualization_label.setText(String.format("%.1f", 1 + newVal.doubleValue() / 100) + "x");
-        });
+        }
     }
 
     private void handleToScreenChange(){
@@ -111,91 +119,92 @@ public final class QueueVisualizerController {
         });
     }
 
-    private void fixVisualizationAreaLayout(double width, double height){
-        double updatedWidth = 0.8 * width;
-        double updatedHeight = 0.15 * height;
-        double updatedStroke = 0.004 * width;
-
-        if(queueDelimiter == null){
-            queueDelimiter = new QueueDelimiter(updatedWidth, updatedHeight, updatedStroke);
-            visualization_area.getChildren().add(queueDelimiter);
-        } 
-
-        Platform.runLater(() -> {
-            queueDelimiter.update(updatedWidth, updatedHeight, updatedStroke);
-            AnchorPane.setTopAnchor(queueDelimiter, (height / 2) - (queueDelimiter.getSpacingBetweenLines() / 2));
-            AnchorPane.setLeftAnchor(queueDelimiter, (width / 2) - (queueDelimiter.getWidth() / 2));
-
-            double xOffset = 0.01 * width;
-            double value = height < width ? height : width;
-
-            for(int i = 0; i < nodes.size(); ++i){
-                nodes.get(i).update(
-                    value * QueueVisualizerConfig.squareSize, 
-                    value * QueueVisualizerConfig.squareSize, value * 0.005
-                );
-                
-                AnchorPane.setTopAnchor(
-                    nodes.get(i), (height / 2) - (nodes.get(i).getRect().getHeight()) / 2
-                );
-
-                AnchorPane.setLeftAnchor(
-                    nodes.get(i), 
-                    xOffset + (width / 2) - (queueDelimiter.getWidth() / 2) +
-                    ((1 + QueueVisualizerConfig.spacingBetweenNodes) * nodes.get(i).getRect().getWidth() * i)
-                );
-
-                final double nodeWidth = value * ListVisualizerConfig.squareSize;
-                final double arrowLenght = ListVisualizerConfig.spacingBetweenNodes * nodeWidth;
-
-                if(i < arrows.size()){
-                    resizeArrow(arrows.get(i), arrowLenght, width, height);
-                    
-                    AnchorPane.setTopAnchor(
-                        arrows.get(i), 
-                        (height / 2) - (arrows.get(i).getBoundsInParent().getHeight() / 2)
-                    );
-
-                    AnchorPane.setLeftAnchor(
-                        arrows.get(i), 
-                        xOffset + (width / 2) - (queueDelimiter.getWidth() / 2) + nodeWidth +
-                        ((1 + QueueVisualizerConfig.spacingBetweenNodes) * nodes.get(i).getRect().getWidth() * i)
-                    );
-                }
+    private void setupControlButtons(){
+        reset_btn.setOnAction(e -> {
+            animationTimeLine.reset();
+        });
+        
+        step_backward_btn.setOnAction(e -> {
+            animationTimeLine.playPrevious(1.0);
+        });
+        
+        pause_btn.setOnAction(e -> {
+            if(animationTimeLine.isPlaying()){
+                animationTimeLine.pause();   
             }
-
-            anchorArrowLabels(
-                QueueVisualizerConfig.squareSize * width * 0.6, 
-                QueueVisualizerConfig.squareSize * height / 3, 
-                width, height
-            );
+            
+            else{
+                animationTimeLine.play();
+            }
+        });
+        
+        step_forward_btn.setOnAction(e -> {
+            animationTimeLine.playNext();
+        });
+        
+        advance_btn.setOnAction(e -> {
+            animationTimeLine.playFast();
         });
     }
 
-    private void resizeArrow(Arrow arrow, double lenght, double width, double height){
-        arrow.setStrokeWidth(height * 0.003);
-        arrow.setLenght(lenght);
+    private void setupListeners(){
+        visualization_area.layoutBoundsProperty().addListener((obs, odlVal, newVal) -> {
+            if(newVal.getWidth() > 0 && newVal.getHeight() > 0){
+                queueLayoutManager.fixVisualizationAreaLayout(newVal.getWidth(), newVal.getHeight());
+            }
+        });
+
+        speed_visualization_slider.valueProperty().addListener((obs, oldValue, newVal) -> {
+            speed_visualization_label.setText(String.format("%.1f", 1 + newVal.doubleValue() / 100) + "x");
+        });
+
+        visualization_progress.progressProperty().bind(animationTimeLine.progressProperty());
+
+        animationTimeLine.setOnFinished(() -> {
+            queueLayoutManager.fixVisualizationAreaLayout(
+                visualization_area.getWidth(),
+                visualization_area.getHeight()
+            );
+        });
+
+        animationTimeLine.setOnStepChanged(index -> {
+            List<ExplanationText> explanations = explanationRepository.get(index);
+
+            if(!explanations.isEmpty()) {
+                queueLayoutManager.getExplanationTextRect().setContent(
+                    ExplanationTextParser.parse(explanations)
+                );
+            } 
+            
+            else{
+                queueLayoutManager.getExplanationTextRect().clear();
+            }
+        });
     }
 
     private void setupOperations(){
         create_btn.setOnAction(e -> {
             DialogFactory.showInputDialog("Insira o tamanho da fila: ", null, (Integer lenght, Integer v) -> {
                 createQueue(lenght);
-                fixVisualizationAreaLayout(visualization_area.getWidth(), visualization_area.getHeight());
+                queueLayoutManager.fixVisualizationAreaLayout(
+                    visualization_area.getWidth(), visualization_area.getHeight()
+                );
             });
         });
 
         enqueue_btn.setOnAction(e -> {
-
+            DialogFactory.showInputDialog("Insira o valor para enfileirar: ", null, (Integer value, Integer v) -> {
+                enqueue(value);
+            });
         });
 
         dequeue_btn.setOnAction(e -> {
-
+            DialogFactory.ConfirmDialog.show("Deseja desenfileirar um nó?", () -> dequeue());
         });
 
         clear_btn.setOnAction(e -> {
             DialogFactory.ConfirmDialog.show("Tem certeza que deseja limpar a área de visualização?", () -> {
-                clearVisualization();
+                queueLayoutManager.clearVisualization();
             });
         });
     }
@@ -211,7 +220,10 @@ public final class QueueVisualizerController {
             return;
         }
 
-        clearVisualization();
+        queueLayoutManager.clearVisualization();
+        
+        final ArrayList<VisualNode> nodes = queueLayoutManager.getNodes();
+        final ArrayList<Arrow> arrows = queueLayoutManager.getArrows();
 
         for(int i = 0; i < lenght; ++i){
             Integer randInt = ThreadLocalRandom.current().nextInt(0, 9999);
@@ -234,68 +246,60 @@ public final class QueueVisualizerController {
             visualization_area.getChildren().add(nodes.get(i));
         }
     }
-   
-    private void clearVisualization(){
-        for(VisualNode node : nodes){
-            visualization_area.getChildren().remove(node);
-        }
 
-        for(Arrow arrow : arrows){
-            visualization_area.getChildren().remove(arrow);
-        }
-
-        visualization_area.getChildren().remove(startLabel);
-        visualization_area.getChildren().remove(endLabel);
-        nodes.clear();
+    private QueueContext createQueueContext(Integer value){
+        return new QueueContext(
+            queue, value, visualization_area.getWidth(), 
+            visualization_area.getHeight(), explanationRepository,
+            queueLayoutManager.getQueueDelimiter().getWidth()
+        );
     }
 
-    private void anchorArrowLabels(double arrowLenght, double fontSize, double width, double height){
-        if(nodes.isEmpty()){
-            visualization_area.getChildren().remove(startLabel);
-            visualization_area.getChildren().remove(endLabel);
+    private void enqueue(Integer value){
+        if(queueLayoutManager.getNodes().size() == QueueVisualizerConfig.queueMaxLimit){
+            Util.showAlert(
+                "Quantidade máxima de elementos permitidos atingida!",
+                "Não possível enfileirar o elemento. A quantidade máxima foi atingida: "
+                + QueueVisualizerConfig.queueMaxLimit + "\n", 
+                AlertType.WARNING
+            );
+
             return;
         }
 
-        if(!visualization_area.getChildren().contains(startLabel)){
-            visualization_area.getChildren().add(startLabel);
-        }
+        animationTimeLine.clear();
+        explanationRepository.clear();
 
-        if(!visualization_area.getChildren().contains(endLabel)){
-            visualization_area.getChildren().add(endLabel);
-        }
-
-        final double value = height < width ? height : width;
-        final double nodeWidth = QueueVisualizerConfig.squareSize * value; 
-        final double xOffset = 0.01 * width;
-        final double labelsYoffset = 1.7;
-
-        startLabel.setText("INÍCIO");
-        startLabel.update(arrowLenght, startLabel.getText(), fontSize);
-
-        if(nodes.size() == 1){
-            visualization_area.getChildren().remove(endLabel);
-            startLabel.setText("INÍCIO\nFIM");
-        }
-
-        if(visualization_area.getChildren().contains(endLabel)){
-            endLabel.update(arrowLenght, "FIM", fontSize);
-
-            AnchorPane.setTopAnchor(
-                endLabel, ((height / 2) - (nodeWidth / 2)) - ((1 + labelsYoffset) * arrowLenght)
-            );
-
-            AnchorPane.setLeftAnchor(
-                endLabel, (nodeWidth / 2 ) + (width / 2) - (queueDelimiter.getWidth() / 2) +
-                ((1 + QueueVisualizerConfig.spacingBetweenNodes) * nodeWidth * (nodes.size() - 1)) 
-            );
-        }
-            
-        AnchorPane.setTopAnchor(
-            startLabel, ((height / 2) - (nodeWidth / 2)) - ((1 + labelsYoffset) * arrowLenght)
+        final QueueContext context = createQueueContext(value); 
+        
+        final EnqueueOperation op = new EnqueueOperation(
+            context, visualization_area, queueLayoutManager.getNodes(), queueLayoutManager.getArrows(), 
+            queueLayoutManager.getStartLabel(), queueLayoutManager.getEndLabel()
         );
 
-        AnchorPane.setLeftAnchor(
-            startLabel, xOffset + (width / 2) - (queueDelimiter.getWidth() / 2)
+        op.build(animationTimeLine);
+        animationTimeLine.play();
+    }
+
+    private void dequeue(){
+        if(queueLayoutManager.getNodes().size() == 0){
+            Util.showAlert(
+                "Fila Vazia", "A fila está vazia.\n", AlertType.WARNING
+            );
+
+            return;
+        }
+
+        animationTimeLine.clear();
+        explanationRepository.clear();
+
+        QueueContext context = createQueueContext(-1);
+        DequeueOperation op = new DequeueOperation(
+            context, visualization_area, queueLayoutManager.getNodes(), queueLayoutManager.getArrows(), 
+            queueLayoutManager.getStartLabel(), queueLayoutManager.getEndLabel()
         );
-    }   
+
+        op.build(animationTimeLine);
+        animationTimeLine.play();
+    }
 }
